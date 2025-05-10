@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>替换Word模板</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>替换Word模板中的占位符</h1>
+    <form id="replaceForm">
+        <div class="form-group">
+            <label for="name">输入姓名：</label>
+            <input type="text" id="name" placeholder="请输入姓名" required>
+        </div>
+        <button type="submit">生成Word文档</button>
+    </form>
+
+    <script>
+        document.getElementById('replaceForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('name').value;
+            if (!name) {
+                alert('请输入姓名！');
+                return;
+            }
+
+            // Step 1: Fetch the Word template from the root directory
+            fetch('lqtzs.docx')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('无法加载模板文件');
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    // Step 2: Read the file content as binary and replace the placeholder
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const content = e.target.result;
+
+                        // Replace {姓名} with the user input
+                        const updatedContent = content.replace(/{姓名}/g, name);
+
+                        // Step 3: Create a new Blob and download the modified template
+                        const newBlob = new Blob([updatedContent], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(newBlob);
+                        link.download = '生成的文档.docx';
+                        link.click();
+                    };
+                    reader.readAsText(blob);
+                })
+                .catch(error => {
+                    console.error('发生错误:', error);
+                    alert('加载模板文件失败，请确保模板文件在根目录下。');
+                });
+        });
+    </script>
+</body>
+</html>
